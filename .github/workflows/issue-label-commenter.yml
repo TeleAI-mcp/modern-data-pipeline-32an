@@ -1,0 +1,37 @@
+name: Issue Label Commenter
+
+on:
+  issues:
+    types: [labeled]
+
+jobs:
+  comment-on-label:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Add comment based on label
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = context.issue;
+            const label = context.payload.label.name;
+            
+            // Map of labels to comment messages
+            const labelComments = {
+              'bug': 'Thank you for reporting this bug. Our team will investigate and fix it.',
+              'wontfix': 'After review, we have decided not to address this issue at this time.',
+              'enhancement': 'Thanks for the enhancement suggestion! We appreciate your input.'
+            };
+            
+            // Check if the added label has a comment
+            if (labelComments[label]) {
+              // Add the comment to the issue
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body: labelComments[label]
+              });
+              console.log(`Comment added for label: ${label}`);
+            } else {
+              console.log(`No comment configured for label: ${label}`);
+            }
